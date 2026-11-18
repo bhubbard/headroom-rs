@@ -1,0 +1,27 @@
+[package]
+name = "headroom-mcp"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+description = "Pure-Rust Headroom MCP server, SQLite FTS5 agent memory, and IDE/CLI config registrars."
+
+[dependencies]
+headroom-core = { path = "../headroom-core" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+tokio = { version = "1", features = ["macros", "rt", "io-std", "io-util", "sync"] }
+rusqlite = { version = "0.41", features = ["bundled"] }
+reqwest = { workspace = true }
+toml = "1.1"
+dirs = { workspace = true }
+uuid = { version = "1", features = ["v4"] }
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "io-std", "io-util", "sync"] }
+wiremock = "0.6"
