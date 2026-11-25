@@ -45,10 +45,10 @@ static GREP_ROW_RE: LazyLock<Regex> =
 static HEADING_ROW_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"^(\d+):(.*)$").expect("valid heading row"));
 static DIR_DATA_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^([^/\n:]+):(\d+):(.*)$").expect("valid dir row"));
+    LazyLock::new(|| Regex::new(r"^([^/\\\n:]+):(\d+):(.*)$").expect("valid dir row"));
 static TIMESTAMP_ROW_RE: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
-        r"^\s*\[?(?:\d{4}-\d{2}-\d{2}[ T]\d{1,2}:\d{2}|\d{4}/\d{2}/\d{2}[ T]\d{1,2}:\d{2}|\d{2}/\d{2}/\d{2,4}[ T]\d{1,2}:\d{2}|[A-Z][a-z]{2}\s+\d{1,2}\s+\d{1,2}:\d{2}|[IWEF]\d{4}\s+\d{1,2}:\d{2}|[A-Za-z0-9_.-]+ [^\s:]+ [^\s:]+ \[\d{2}/[A-Z][a-z]{2}/\d{4}:\d{2}:\d{2}|\d{1,2}:\d{2}:\d{2}(?:[.,]\d+)?(?:\s|\]|$))",
+        r"^\s*(?:\[?(?:\d{4}-\d{2}-\d{2}[ T]\d{1,2}:\d{2}|\d{4}/\d{2}/\d{2}[ T]\d{1,2}:\d{2}|\d{2}/\d{2}/\d{2,4}[ T]\d{1,2}:\d{2}|[A-Z][a-z]{2}\s+\d{1,2}\s+\d{1,2}:\d{2}|[IWEF]\d{4}\s+\d{1,2}:\d{2}|[A-Za-z0-9_.-]+ [^\s:]+ [^\s:]+ \[\d{2}/[A-Z][a-z]{2}/\d{4}:\d{2}:\d{2}|\d{1,2}:\d{2}:\d{2}(?:[.,]\d+)?(?:\s|\]|$))|[IWEFDU], \[\d{4}-\d{2}-\d{2}T\d{2}:\d{2})",
     )
     .expect("valid timestamp guard")
 });
@@ -339,7 +339,7 @@ pub fn search_dir_heading(text: &str) -> String {
         };
         if let Some(cap) = matched {
             let path = cap.get(1).map_or("", |m| m.as_str());
-            if let Some(slash) = path.rfind('/') {
+            if let Some(slash) = path.rfind(['/', '\\']) {
                 let (dir_part, base) = path.split_at(slash + 1);
                 let line_no = cap.get(2).map_or("", |m| m.as_str());
                 let content = cap.get(3).map_or("", |m| m.as_str());
@@ -376,7 +376,10 @@ pub fn search_dir_unheading(text: &str) -> String {
                 continue;
             }
         }
-        if line.ends_with('/') && i + 1 < lines.len() && DIR_DATA_RE.is_match(lines[i + 1]) {
+        if (line.ends_with('/') || line.ends_with('\\'))
+            && i + 1 < lines.len()
+            && DIR_DATA_RE.is_match(lines[i + 1])
+        {
             current_dir = Some(line);
             i += 1;
             continue;

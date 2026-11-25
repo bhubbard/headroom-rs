@@ -99,6 +99,8 @@ pub struct SseFramer {
     /// providers append a final empty `\n\n`), but the state machine
     /// can use this to gate "no more useful events expected".
     done_seen: bool,
+    /// Whether a leading UTF-8 BOM (`0xEF 0xBB 0xBF`) has already been checked/stripped.
+    bom_checked: bool,
 }
 
 impl SseFramer {
@@ -154,6 +156,12 @@ impl SseFramer {
             return;
         }
         self.buf.extend_from_slice(chunk);
+        if !self.bom_checked && self.buf.len() >= 3 {
+            self.bom_checked = true;
+            if self.buf.starts_with(b"\xEF\xBB\xBF") {
+                let _ = self.buf.split_to(3);
+            }
+        }
     }
 
     /// Drain the next complete event from the buffer, if one is

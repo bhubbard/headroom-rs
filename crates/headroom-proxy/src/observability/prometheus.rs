@@ -74,12 +74,22 @@ const MAX_MODEL_LABEL_LEN: usize = 128;
 const MAX_TRACKED_MODELS: usize = 200;
 const OTHER_MODEL_LABEL: &str = "other";
 
-/// Clip `raw` to [`MAX_MODEL_LABEL_LEN`] chars and fold it into
-/// [`OTHER_MODEL_LABEL`] once `seen` already holds `cap` values. The
-/// model id is the client-supplied URL path segment, so without this
-/// every distinct value is a new series that lives until exit.
+fn is_valid_model_key(raw: &str) -> bool {
+    raw.chars().count() <= MAX_MODEL_LABEL_LEN
+        && !raw.chars().any(|c| {
+            let code = c as u32;
+            code < 32 || (127..160).contains(&code)
+        })
+}
+
+/// Bucket invalid `model` keys (control characters or > [`MAX_MODEL_LABEL_LEN`]
+/// chars) into [`OTHER_MODEL_LABEL`], and fold distinct valid values past `cap`
+/// into [`OTHER_MODEL_LABEL`] as well.
 fn bound_label(seen: &mut HashSet<String>, raw: &str, cap: usize) -> String {
-    let key: String = raw.chars().take(MAX_MODEL_LABEL_LEN).collect();
+    if !is_valid_model_key(raw) {
+        return OTHER_MODEL_LABEL.to_string();
+    }
+    let key = raw.to_string();
     if key == OTHER_MODEL_LABEL || seen.contains(&key) {
         return key;
     }
@@ -460,13 +470,18 @@ mod tests {
     }
 
     #[test]
-    fn long_model_id_is_clipped() {
+    fn invalid_model_id_is_bucketed_as_other() {
         let long = "x".repeat(MAX_MODEL_LABEL_LEN + 50);
-        // Clipping itself, on a fresh set.
+        let exact_max = "y".repeat(MAX_MODEL_LABEL_LEN);
         let mut seen = HashSet::new();
+        assert_eq!(bound_label(&mut seen, &long, MAX_TRACKED_MODELS), "other");
         assert_eq!(
-            bound_label(&mut seen, &long, MAX_TRACKED_MODELS),
-            "x".repeat(MAX_MODEL_LABEL_LEN)
+            bound_label(&mut seen, "bad\nmodel", MAX_TRACKED_MODELS),
+            "other"
+        );
+        assert_eq!(
+            bound_label(&mut seen, &exact_max, MAX_TRACKED_MODELS),
+            exact_max
         );
         // Through the metric path the raw id never becomes a label, whichever
         // way it is bounded.

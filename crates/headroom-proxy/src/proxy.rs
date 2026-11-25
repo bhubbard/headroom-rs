@@ -610,21 +610,27 @@ async fn handle_retrieve_post(
     retrieve_from_store(store, &body.hash, body.query.as_deref(), body.max_results)
 }
 
+#[derive(serde::Deserialize)]
+struct FeedQuery {
+    limit: Option<usize>,
+}
+
 async fn handle_transformations_feed(
     State(state): State<AppState>,
     ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    Query(query): Query<FeedQuery>,
     headers: HeaderMap,
 ) -> Response<Body> {
     if !crate::observability::stats_http::caller_is_local(peer, &headers) {
         return (StatusCode::NOT_FOUND, "not found").into_response();
     }
-    let items: Vec<TransformationRecord> = state
+    let limit = query.limit.unwrap_or(100).clamp(1, 100);
+    let guard = state
         .transformations
         .lock()
-        .unwrap_or_else(PoisonError::into_inner)
-        .iter()
-        .cloned()
-        .collect();
+        .unwrap_or_else(PoisonError::into_inner);
+    let skip = guard.len().saturating_sub(limit);
+    let items: Vec<TransformationRecord> = guard.iter().skip(skip).cloned().collect();
     (StatusCode::OK, Json(serde_json::json!({ "items": items }))).into_response()
 }
 

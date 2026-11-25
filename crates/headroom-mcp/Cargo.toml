@@ -16,7 +16,7 @@ serde_json = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt", "io-std", "io-util", "sync"] }
-rusqlite = { version = "0.41", features = ["bundled"] }
+rusqlite = { version = "0.43", features = ["bundled"] }
 reqwest = { workspace = true }
 toml = "1.1"
 dirs = { workspace = true }

@@ -161,7 +161,7 @@ fn walk_messages(parsed: &Value, highest_message_index: &mut Option<usize>) {
             continue;
         };
         for block in blocks {
-            if let Some(marker) = block.get("cache_control") {
+            let mut observe_marker = |marker: &Value| {
                 let ttl = extract_ttl(marker);
                 tracing::debug!(
                     field = "messages",
@@ -175,6 +175,16 @@ fn walk_messages(parsed: &Value, highest_message_index: &mut Option<usize>) {
                     Some(prev) => (*prev).max(i),
                     None => i,
                 });
+            };
+            if let Some(marker) = block.get("cache_control") {
+                observe_marker(marker);
+            }
+            if let Some(nested) = block.get("content").and_then(Value::as_array) {
+                for inner in nested {
+                    if let Some(marker) = inner.get("cache_control") {
+                        observe_marker(marker);
+                    }
+                }
             }
         }
     }

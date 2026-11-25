@@ -49,12 +49,16 @@ impl AgentTarget {
         }
     }
 
-    /// Resolve the target config path relative to `home_dir`.
+    /// Resolve the target config path relative to `home_dir` (honoring
+    /// `CLAUDE_CONFIG_DIR` for [`AgentTarget::Claude`]).
     #[must_use]
     pub fn config_path(self, home_dir: &Path) -> PathBuf {
         match self {
             AgentTarget::Antigravity => home_dir.join(".gemini/antigravity/mcp_config.json"),
-            AgentTarget::Claude => home_dir.join(".claude.json"),
+            AgentTarget::Claude => std::env::var_os("CLAUDE_CONFIG_DIR")
+                .filter(|v| !v.is_empty())
+                .map(PathBuf::from)
+                .map_or_else(|| home_dir.join(".claude.json"), |d| d.join(".claude.json")),
             AgentTarget::Codex => home_dir.join(".codex/config.toml"),
             AgentTarget::Cursor => home_dir.join(".cursor/mcp.json"),
         }
@@ -70,7 +74,12 @@ impl AgentTarget {
         match self {
             AgentTarget::Antigravity => home_dir.join(".gemini/antigravity").is_dir(),
             AgentTarget::Claude => {
-                home_dir.join(".claude").is_dir() || home_dir.join(".claude.json").exists()
+                std::env::var_os("CLAUDE_CONFIG_DIR")
+                    .filter(|v| !v.is_empty())
+                    .map(PathBuf::from)
+                    .is_some_and(|d| d.is_dir())
+                    || home_dir.join(".claude").is_dir()
+                    || home_dir.join(".claude.json").exists()
             }
             AgentTarget::Codex => home_dir.join(".codex").is_dir(),
             AgentTarget::Cursor => home_dir.join(".cursor").is_dir(),
