@@ -20,6 +20,7 @@ edition = "2021"
 rust-version = "1.80"
 license = "Apache-2.0"
 repository = "https://github.com/bhubbard/headroom-rs"
+readme = "README.md"
 authors = ["Headroom Maintainers", "Brandon Hubbard <bhubbard@users.noreply.github.com>"]
 
 [workspace.dependencies]

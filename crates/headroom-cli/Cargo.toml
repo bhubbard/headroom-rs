@@ -5,6 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+readme.workspace = true
 authors.workspace = true
 description = "Unified pure-Rust CLI for Headroom context compression, reverse proxy, MCP server, wrap, diagnostics, and savings inspection."
 
@@ -17,9 +18,9 @@ name = "headroom_cli"
 path = "src/lib.rs"
 
 [dependencies]
-headroom-core = { path = "../headroom-core" }
-headroom-proxy = { path = "../headroom-proxy" }
-headroom-mcp = { path = "../headroom-mcp" }
+headroom-core = { version = "0.1.0", path = "../headroom-core" }
+headroom-proxy = { version = "0.1.0", path = "../headroom-proxy" }
+headroom-mcp = { version = "0.1.0", path = "../headroom-mcp" }
 anyhow = { workspace = true }
 clap = { workspace = true }
 dirs = { workspace = true }

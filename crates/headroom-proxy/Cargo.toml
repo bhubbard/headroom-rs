@@ -5,6 +5,7 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+readme.workspace = true
 description = "Headroom transparent reverse proxy (Rust, axum)."
 
 [[bin]]
@@ -44,7 +45,7 @@ url = "2"
 humantime = "2"
 bytesize = "2"
 tokio-util = { version = "0.7" }
-headroom-core = { path = "../headroom-core" }
+headroom-core = { version = "0.1.0", path = "../headroom-core" }
 # Phase D PR-D1: native Bedrock InvokeModel route. SigV4 + AWS
 # default credential chain.
 aws-sigv4 = { workspace = true }

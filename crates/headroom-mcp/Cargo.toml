@@ -5,11 +5,12 @@ edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
 repository.workspace = true
+readme.workspace = true
 authors.workspace = true
 description = "Pure-Rust Headroom MCP server, SQLite FTS5 agent memory, and IDE/CLI config registrars."
 
 [dependencies]
-headroom-core = { path = "../headroom-core" }
+headroom-core = { version = "0.1.0", path = "../headroom-core" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 thiserror = { workspace = true }
